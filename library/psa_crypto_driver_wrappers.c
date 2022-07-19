@@ -107,6 +107,12 @@ psa_status_t psa_driver_wrapper_init( void )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
+#if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
+    status = tfm_builtin_key_loader_init();
+    if (status != PSA_SUCCESS)
+        return ( status );
+#endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
+
 #if defined(PSA_CRYPTO_DRIVER_CC3XX)
     status = cc3xx_init();
     if (status != PSA_SUCCESS)
@@ -999,7 +1005,7 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
         case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
-            return( tfm_builtin_key_loader_get_key_buffer(
+            return( tfm_builtin_key_loader_get_builtin_key(
                         slot_number,
                         attributes,
                         key_buffer, key_buffer_size, key_buffer_length ) );
@@ -2837,6 +2843,9 @@ psa_status_t psa_driver_wrapper_asymmetric_encrypt(
     switch( location )
     {
         case PSA_KEY_LOCATION_LOCAL_STORAGE:
+#if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
+        case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
+#endif /* defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER) */
             /* Key is stored in the slot in export representation, so
              * cycle through all known transparent accelerators */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
